@@ -1,0 +1,98 @@
+﻿
+<select onchange="onSelectChange()" class="sorting" id="sortOptions">
+    <option value="temp">Temperature</option>
+    <option value="price">Price</option>
+</select>
+
+<select onchange="onSelectChange()" class="sorting" id="sortDirection">
+    <option value="hl">High - Low</option>
+    <option value="lh">Low - High</option>
+</select>
+
+<div id="main"></div>
+
+<script>
+
+    function getPage(pageNumber) {
+        data = JSON.stringify({
+            pageNumber: pageNumber
+        })
+
+        $.ajax({
+            url: "/Home/GetPage",
+            type: "POST",
+            data: data,
+            contentType: "application/json; charset=utf-8",
+            dataType: "text",
+            success: function (response) {
+                document.getElementById("main").innerHTML += response + " ";
+            }
+        })
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function onSelectChange() {
+        var sortDirection = document.getElementById("sortDirection").value;
+        var sortOption = document.getElementById("sortOptions").value;
+
+        var selector = "";
+        if (sortOption == "temp") selector = ".cept-vote-temp";
+        if (sortOption == "price") selector = ".thread-price";
+
+        var toSort = document.getElementById("main").children;
+        toSort = Array.prototype.slice.call(toSort, 0)
+
+        if (sortDirection == "lh")
+        {
+            toSort.sort(function (a, b) {
+                var a_sel = a.querySelector(selector);
+                var b_sel = b.querySelector(selector);
+
+                var a_val = 0
+                if (a_sel != null) a_val = a.querySelector(selector).innerText.replace("°", "").replace("£", "").replace(",", "");
+
+                var b_val = 0
+                if (b_sel != null) b_val = b.querySelector(selector).innerText.replace("°", "").replace("£", "").replace(",", "");
+
+                return parseFloat(a_val) - parseFloat(b_val);
+            });
+        }
+        else {
+            toSort.sort(function (a, b) {
+                var a_sel = a.querySelector(selector);
+                var b_sel = b.querySelector(selector);
+
+                var a_val = 0
+                if (a_sel != null) a_val = a.querySelector(selector).innerText.replace("°", "").replace("£", "").replace(",", "");
+
+                var b_val = 0
+                if (b_sel != null) b_val = b.querySelector(selector).innerText.replace("°", "").replace("£", "").replace(",", "");
+
+                return parseFloat(b_val) - parseFloat(a_val);
+            });
+        }
+
+
+        
+
+        var parent = document.getElementById('main');
+        parent.innerHTML = "";
+
+        for (var i = 0, l = toSort.length; i < l; i++) {
+            parent.appendChild(toSort[i]);
+        }
+
+    }
+
+
+    window.onload = async function () {
+        for (let i = 1; i <= 50; i++) {
+            await sleep(1000);
+            getPage(i);
+            console.log("Retrieved page " + i);
+        }
+    };
+</script>
